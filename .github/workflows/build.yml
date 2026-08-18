@@ -1,4 +1,4 @@
-name: Build Smart PDF Reader
+name: SmartPDFReader V2 – Structural Fix
 
 on:
   workflow_dispatch:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    name: Build Smart PDF Reader
+    name: Build SmartPDFReader V2
     runs-on: ubuntu-latest
 
     steps:
@@ -38,71 +38,30 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Extract Smart PDF Reader project
+      - name: Verify project structure
         run: |
           set -e
 
-          echo "Repository contents:"
-          ls -la
-
-          echo "Extracting project ZIP..."
-          unzip -o SmartPDFReader_V1_corrected.zip -d extracted
-
-          echo "Extracted contents:"
-          find extracted -maxdepth 4 -type f | sort
-
-      - name: Locate Android project
-        run: |
-          set -e
-
-          PROJECT_DIR=$(find extracted -name settings.gradle -type f \
-            -printf '%h\n' | head -n 1)
-
-          if [ -z "$PROJECT_DIR" ]; then
-            echo "ERROR: settings.gradle was not found."
-            echo "Contents of extracted directory:"
-            find extracted -maxdepth 5 -type f | sort
-            exit 1
-          fi
-
-          echo "Android project found at:"
-          echo "$PROJECT_DIR"
-
-          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
-
-      - name: Verify Android project
-        run: |
-          set -e
-
-          echo "Project directory:"
-          echo "$PROJECT_DIR"
-
-          test -f "$PROJECT_DIR/settings.gradle"
-          test -f "$PROJECT_DIR/build.gradle"
-          test -f "$PROJECT_DIR/app/build.gradle"
-          test -f "$PROJECT_DIR/gradle.properties"
+          test -f settings.gradle
+          test -f build.gradle
+          test -f app/build.gradle
+          test -f app/src/main/AndroidManifest.xml
+          test -f app/src/main/java/com/smartpdfreader/MainActivity.kt
 
           echo "Project structure verified."
 
       - name: Build debug APK
-        working-directory: ${{ env.PROJECT_DIR }}
         run: |
           set -e
-
           gradle clean assembleDebug --no-daemon --stacktrace
 
       - name: Verify APK
-        working-directory: ${{ env.PROJECT_DIR }}
         run: |
           set -e
 
           APK="app/build/outputs/apk/debug/app-debug.apk"
 
-          if [ ! -s "$APK" ]; then
-            echo "ERROR: APK was not created."
-            exit 1
-          fi
-
+          test -s "$APK"
           unzip -tq "$APK"
 
           echo "APK successfully created:"
@@ -111,6 +70,6 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: SmartPDFReader-V1-debug
-          path: ${{ env.PROJECT_DIR }}/app/build/outputs/apk/debug/app-debug.apk
+          name: SmartPDFReader-V2-debug
+          path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
