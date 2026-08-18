@@ -1,4 +1,4 @@
-name: Build SmartPDFReader V2
+name: Build SmartPDFReader V3
 
 on:
   workflow_dispatch:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    name: Build SmartPDFReader V2
+    name: Build SmartPDFReader V3
     runs-on: ubuntu-latest
 
     steps:
@@ -38,11 +38,11 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Extract SmartPDFReader V2
+      - name: Extract SmartPDFReader V3
         run: |
           set -e
 
-          ZIP="SmartPDFReader_V2_structural_fix.zip"
+          ZIP="SmartPDFReader_V3.zip"
 
           if [ ! -f "$ZIP" ]; then
             echo "ERROR: $ZIP not found."
@@ -70,6 +70,8 @@ jobs:
 
           if [ -z "$PROJECT_DIR" ]; then
             echo "ERROR: settings.gradle not found."
+            echo "Contents of build_source:"
+            find build_source -maxdepth 5 -type f | sort
             exit 1
           fi
 
@@ -115,8 +117,10 @@ jobs:
 
           if [ ! -s "$APK" ]; then
             echo "ERROR: APK was not generated."
+
             find "$PROJECT_DIR/app/build/outputs" \
               -type f 2>/dev/null || true
+
             exit 1
           fi
 
@@ -128,6 +132,6 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: SmartPDFReader-V2-debug
+          name: SmartPDFReader-V3-debug
           path: ${{ env.PROJECT_DIR }}/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
