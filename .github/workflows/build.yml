@@ -1,4 +1,4 @@
-name: Build SmartPDFReader V3
+name: Build SmartPDFReader V4
 
 on:
   workflow_dispatch:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    name: Build SmartPDFReader V3
+    name: Build SmartPDFReader V4
     runs-on: ubuntu-latest
 
     steps:
@@ -38,15 +38,15 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Extract SmartPDFReader V3
+      - name: Extract SmartPDFReader V4
         run: |
           set -e
 
-          ZIP="SmartPDFReader_V3.zip"
+          ZIP="SmartPDFReader_V4.zip"
 
           if [ ! -f "$ZIP" ]; then
             echo "ERROR: $ZIP not found."
-            echo "ZIP files in repository:"
+            echo "Available ZIP files:"
             find . -maxdepth 2 -type f -name "*.zip" -print
             exit 1
           fi
@@ -57,27 +57,25 @@ jobs:
           unzip -q "$ZIP" -d build_source
 
           echo "Extracted project:"
-          find build_source -maxdepth 3 -type f | sort
+          find build_source -maxdepth 4 -type f | sort
 
       - name: Locate Android project
         run: |
           set -e
 
-          PROJECT_DIR=$(find build_source \
+          SETTINGS=$(find build_source \
             -type f \
             -name "settings.gradle" \
             -print -quit)
 
-          if [ -z "$PROJECT_DIR" ]; then
+          if [ -z "$SETTINGS" ]; then
             echo "ERROR: settings.gradle not found."
-            echo "Contents of build_source:"
-            find build_source -maxdepth 5 -type f | sort
             exit 1
           fi
 
-          PROJECT_DIR=$(dirname "$PROJECT_DIR")
+          PROJECT_DIR=$(dirname "$SETTINGS")
 
-          echo "Android project:"
+          echo "Android project found at:"
           echo "$PROJECT_DIR"
 
           test -f "$PROJECT_DIR/build.gradle"
@@ -95,7 +93,6 @@ jobs:
           echo "Project root:"
           pwd
 
-          echo
           echo "Project files:"
           find . -maxdepth 3 -type f | sort
 
@@ -127,11 +124,12 @@ jobs:
           echo "APK generated successfully:"
           ls -lh "$APK"
 
+          echo "Testing APK integrity..."
           unzip -tq "$APK"
 
-      - name: Upload APK
+      - name: Upload V4 APK
         uses: actions/upload-artifact@v4
         with:
-          name: SmartPDFReader-V3-debug
+          name: SmartPDFReader-V4-debug
           path: ${{ env.PROJECT_DIR }}/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
